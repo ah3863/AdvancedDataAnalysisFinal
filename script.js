@@ -1,3 +1,11 @@
+const initialViewState = {
+  latitude: 40.7,     // adjust slightly if needed
+  longitude: -73.94,  // adjust slightly if needed
+  zoom: 9,            // lower value = zoomed out
+  bearing: 0,
+  pitch: 0
+};
+
 let cdVisible = true;
 let floodVisible = true;
 let redlineVisible = true;
