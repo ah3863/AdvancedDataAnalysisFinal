@@ -3,7 +3,7 @@ const initialViewState = {
   longitude: -73.94,  // adjust slightly if needed
   zoom: .1,            // lower value = zoomed out
   bearing: 0,
-  pitch: 0
+  pitch: 27
 };
 
 let cdVisible = false;
