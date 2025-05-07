@@ -6,8 +6,8 @@ const initialViewState = {
   pitch: 0
 };
 
-let cdVisible = true;
-let floodVisible = true;
+let cdVisible = false;
+let floodVisible = false;
 let redlineVisible = true;
 
 document.getElementById('toggle-flood').addEventListener('click', () => {
