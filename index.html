@@ -221,7 +221,50 @@
     let floodVisible = true;
     let redlineVisible = true;
 
+    
     map.on('load', () => {
+      // Load and merge redlining datasets
+const boroughFiles = [
+        './data/bronx-redline.geojson',
+        './data/brooklyn-redline.geojson',
+        './data/manhattan-redline.geojson',
+        './data/queens-redline.geojson',
+        './data/statenisland-redline.geojson'
+      ];
+
+      const fetchGeoJSON = url => fetch(url).then(res => res.json());
+
+      Promise.all(boroughFiles.map(fetchGeoJSON)).then(datasets => {
+        const mergedFeatures = datasets.flatMap(data => data.features);
+        const mergedGeoJSON = {
+          type: 'FeatureCollection',
+          features: mergedFeatures
+        };
+
+        map.addSource('redlining', {
+          type: 'geojson',
+          data: mergedGeoJSON
+        });
+
+        map.addLayer({
+          id: 'redlining-layer',
+          type: 'fill',
+          source: 'redlining',
+          paint: {
+          'fill-color': [
+            'match', ['get', 'grade'],
+            'A', '#4F7942',
+            'B', '#FFEA00',
+            'C', '#FFA500',
+            'D', '#FF0000',
+            'E', '#ccc',
+            '#ccc'
+          ],
+          'fill-opacity': 0.8
+        }
+        });
+      });
+      
       map.addSource('community_eligible', {
         type: 'geojson',
         data: './data/community_eligible.geojson'
@@ -270,48 +313,6 @@
           'line-width': 1,
           'line-opacity': 0.4
         }
-      });
-
-// Load and merge redlining datasets
-const boroughFiles = [
-        './data/bronx-redline.geojson',
-        './data/brooklyn-redline.geojson',
-        './data/manhattan-redline.geojson',
-        './data/queens-redline.geojson',
-        './data/statenisland-redline.geojson'
-      ];
-
-      const fetchGeoJSON = url => fetch(url).then(res => res.json());
-
-      Promise.all(boroughFiles.map(fetchGeoJSON)).then(datasets => {
-        const mergedFeatures = datasets.flatMap(data => data.features);
-        const mergedGeoJSON = {
-          type: 'FeatureCollection',
-          features: mergedFeatures
-        };
-
-        map.addSource('redlining', {
-          type: 'geojson',
-          data: mergedGeoJSON
-        });
-
-        map.addLayer({
-          id: 'redlining-layer',
-          type: 'fill',
-          source: 'redlining',
-          paint: {
-          'fill-color': [
-            'match', ['get', 'grade'],
-            'A', '#4F7942',
-            'B', '#FFEA00',
-            'C', '#FFA500',
-            'D', '#FF0000',
-            'E', '#ccc',
-            '#ccc'
-          ],
-          'fill-opacity': 0.8
-        }
-        });
       });
 
       map.on('click', 'flood-risk-layer', (e) => {
