@@ -1,223 +1,301 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Redlining Map</title>
-  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta charset="utf-8" />
+  <title>Community Reinvestment Act & Climate Concerns in NYC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <link
+    rel="stylesheet"
+    href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css"
+    type="text/css"
+  />
   <style>
-    body { margin: 0; padding: 0; font-family: sans-serif; }
-    #map { position: absolute; top: 0; bottom: 0; width: 75%; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+    }
+
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+
+    .title-box {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      text-align: center;
+      z-index: 2;
+    }
+
     .sidebar {
       position: absolute;
-      right: 0;
-      top: 0;
-      width: 25%;
-      height: 100%;
-      overflow-y: auto;
-      background: #fff;
-      padding: 10px;
-      box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+      top: 100px;
+      left: 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      padding: 12px;
+      font-size: 13px;
+      z-index: 2;
+      width: 260px;
     }
+
     .collapsible {
-      background-color: #777;
-      color: white;
+      background-color: #f1f1f1;
       cursor: pointer;
       padding: 10px;
-      width: 100%;
       border: none;
       text-align: left;
       outline: none;
-      font-size: 15px;
-      margin-bottom: 5px;
+      font-size: 14px;
+      width: 100%;
+      border-radius: 5px;
+      margin-bottom: 6px;
+    }
+
+    .active, .collapsible:hover {
+      background-color: #e2e2e2;
     }
 
     .content {
       padding: 0 10px;
       display: none;
       overflow: hidden;
-      background-color: #f1f1f1;
+      margin-bottom: 10px;
     }
 
     .legend-item {
       display: flex;
       align-items: center;
-      margin-bottom: 5px;
+      margin: 4px 0;
     }
 
     .legend-color {
-      width: 20px;
-      height: 20px;
-      margin-right: 10px;
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      border-radius: 2px;
+      border: 1px solid #ccc;
     }
 
-    .description {
+    .mapboxgl-ctrl-geocoder {
       position: absolute;
-      bottom: 0;
-      left: 0;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 20px;
-      width: 75%;
-      max-height: 300px;
-      overflow-y: auto;
+      top: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50%;
+      z-index: 2;
     }
   </style>
 </head>
 <body>
-
-<div id="map"></div>
-
-<div class="sidebar">
-  <button class="collapsible">Toggle Layers</button>
-  <div class="content">
-    <button id="toggle-cd">Toggle CD Eligible Layer</button><br><br>
-    <button id="toggle-flood">Toggle Flood Layer</button><br><br>
-    <button id="toggle-redline">Toggle Redline Map</button>
+  <div class="title-box">
+    <h1 style="margin: 0; font-size: 20px;">
+      Community Reinvestment Act & Climate Concerns in NYC
+    </h1>
+    <p style="margin: 4px 0 0; font-size: 14px;">
+      Mapbox-powered view of economic vulnerability and flood risk across NYC
+    </p>
   </div>
 
-  <button class="collapsible">Legend</button>
-  <div class="content">
-    <div class="legend-item"><div class="legend-color" style="background-color:#000000;"></div><span>CDBG Eligible</span></div>
-    <div class="legend-item"><div class="legend-color" style="background-color:#deebf7;"></div><span>FSHRI 1</span></div>
-    <div class="legend-item"><div class="legend-color" style="background-color:#9ecae1;"></div><span>FSHRI 2</span></div>
-    <div class="legend-item"><div class="legend-color" style="background-color:#6baed6;"></div><span>FSHRI 3</span></div>
-    <div class="legend-item"><div class="legend-color" style="background-color:#3182bd;"></div><span>FSHRI 4</span></div>
-    <div class="legend-item"><div class="legend-color" style="background-color:#08519c;"></div><span>FSHRI 5</span></div>
-    <div class="legend-item"><div class="legend-color" style="background-color:#4F7942;"></div><span>Redline Grade A</span></div>
-    <div class="legend-item"><div class="legend-color" style="background-color:#FFEA00;"></div><span>Redline Grade B</span></div>
-    <div class="legend-item"><div class="legend-color" style="background-color:#FFA500;"></div><span>Redline Grade C</span></div>
-    <div class="legend-item"><div class="legend-color" style="background-color:#FF0000;"></div><span>Redline Grade D</span></div>
+  <div id="map"></div>
+  
+  <div class="sidebar">
+    <!-- Layers Collapsible Section -->
+    <button class="collapsible">Toggle Layers</button>
+    <div class="content">
+      <button id="toggle-cd">Toggle CD Eligible Layer</button><br><br>
+      <button id="toggle-flood">Toggle Flood Layer</button><br><br>
+      <button id="toggle-redline">Toggle Redline Map</button>
+    </div>
+  
+    <!-- Legend Collapsible Section -->
+    <button class="collapsible">Legend</button>
+    <div class="content">
+      <div class="legend-item">
+        <div class="legend-color" style="background-color:#000000;"></div>
+        <span>CDBG Eligible</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color:#deebf7;"></div>
+        <span>FSHRI 1</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color:#9ecae1;"></div>
+        <span>FSHRI 2</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color:#6baed6;"></div>
+        <span>FSHRI 3</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color:#3182bd;"></div>
+        <span>FSHRI 4</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color:#08519c;"></div>
+        <span>FSHRI 5</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color:#4F7942;"></div>
+        <span>Redline Grade A</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color:#FFEA00;"></div>
+        <span>Redline Grade B</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color:#FFA500;"></div>
+        <span>Redline Grade C</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color:#FF0000;"></div>
+        <span>Redline Grade D</span>
+      </div>
+    </div>
+
+  
+    <!-- Climate Risk Resources Collapsible Section -->
+    <button class="collapsible">Climate Risk Resources</button>
+    <div class="content">
+      <ul>
+        <li><a href="https://www.nyc.gov/resiliency" target="_blank">NYC Resiliency Plan</a></li>
+        <li><a href="https://data.cityofnewyork.us" target="_blank">NYC Open Data</a></li>
+      </ul>
+    </div>
   </div>
+  
+  
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYWgzODYzIiwiYSI6ImNtOWJ2ZzJoMDBreHIyanBuYmFvb3lvam0ifQ.Zeg12vyxmHuz86vEocSGdw';
 
-  <button class="collapsible">Climate Risk Resources</button>
-  <div class="content">
-    <ul>
-      <li><a href="https://www.nyc.gov/resiliency" target="_blank">NYC Resiliency Plan</a></li>
-      <li><a href="https://data.cityofnewyork.us" target="_blank">NYC Open Data</a></li>
-    </ul>
-  </div>
-</div>
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/light-v11',
+      center: [-73.77332, 40.86183],
+      zoom: .5
+    });
 
-<div class="description">
-  <div id="description-box">
-    <h2>Redlining Map in NYC</h2>
-    <p>For decades, discriminatory lending practices prevented communities of color from accessing mortgages and financial services...</p>
-    <h2>Community Development & Investment</h2>
-    <p>The Community Reinvestment Act (CRA) was enacted to reverse the harms of redlining...</p>
-    <h2>Environmental Vulnerabilities</h2>
-    <p>Formerly redlined neighborhoods not only face economic struggles but also heightened environmental risks...</p>
-  </div>
-</div>
+    map.setMaxBounds([[-74.25, 40.49], [-73.68, 40.91]]);
 
-<script>
-  mapboxgl.accessToken = 'pk.eyJ1IjoiYWgzODYzIiwiYSI6ImNtOWJ2ZzJoMDBreHIyanBuYmFvb3lvam0ifQ.Zeg12vyxmHuz86vEocSGdw';
+    let cdVisible = true;
+    let floodVisible = true;
+    let redlineVisible = true;
 
-  const map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/light-v11',
-    center: [-73.95856, 40.73247],
-    zoom: 8,
-  });
-
-  map.setMaxBounds([[-74.43384, 40.55329], [-73.48329, 40.91118]]);
-
-  let cdVisible = true;
-  let floodVisible = true;
-  let redlineVisible = true;
-
-  map.on('load', () => {
-    // Merge Redlining datasets
-    const boroughFiles = [
-      './data/bronx-redline.geojson',
-      './data/brooklyn-redline.geojson',
-      './data/manhattan-redline.geojson',
-      './data/queens-redline.geojson',
-      './data/statenisland-redline.geojson'
-    ];
-
-    const fetchGeoJSON = url => fetch(url).then(res => res.json());
-
-    Promise.all(boroughFiles.map(fetchGeoJSON)).then(datasets => {
-      const mergedFeatures = datasets.flatMap(data => data.features);
-      const mergedGeoJSON = { type: 'FeatureCollection', features: mergedFeatures };
-
-      map.addSource('redlining', { type: 'geojson', data: mergedGeoJSON });
+    map.on('load', () => {
+      map.addSource('community_eligible', {
+        type: 'geojson',
+        data: './data/community_eligible.geojson'
+      });
 
       map.addLayer({
-        id: 'redlining-layer',
+        id: 'community-layer',
         type: 'fill',
-        source: 'redlining',
+        source: 'community_eligible',
         paint: {
+          'fill-color': '#000000',
+          'fill-opacity': 0.9
+        },
+        filter: ['==', ['get', 'Eligibility'], 'CD Eligible']
+      });
+
+      map.addSource('flood_risk', {
+        type: 'geojson',
+        data: './data/flood_risk.geojson'
+      });
+
+      map.addLayer({
+        id: 'flood-risk-layer',
+        type: 'fill',
+        source: 'flood_risk',
+        paint: {
+          'fill-color': [
+            'match', ['get', 'fshri'],
+            '1', '#deebf7',
+            '2', '#9ecae1',
+            '3', '#6baed6',
+            '4', '#3182bd',
+            '5', '#08519c',
+            '#ccc'
+          ],
+          'fill-opacity': 0.8
+        }
+      });
+
+      map.addLayer({
+        id: 'flood-outline',
+        type: 'line',
+        source: 'flood_risk',
+        paint: {
+          'line-color': '#000',
+          'line-width': 1,
+          'line-opacity': 0.4
+        }
+      });
+
+// Load and merge redlining datasets
+const boroughFiles = [
+        './data/bronx-redline.geojson',
+        './data/brooklyn-redline.geojson',
+        './data/manhattan-redline.geojson',
+        './data/queens-redline.geojson',
+        './data/statenisland-redline.geojson'
+      ];
+
+      const fetchGeoJSON = url => fetch(url).then(res => res.json());
+
+      Promise.all(boroughFiles.map(fetchGeoJSON)).then(datasets => {
+        const mergedFeatures = datasets.flatMap(data => data.features);
+        const mergedGeoJSON = {
+          type: 'FeatureCollection',
+          features: mergedFeatures
+        };
+
+        map.addSource('redlining', {
+          type: 'geojson',
+          data: mergedGeoJSON
+        });
+
+        map.addLayer({
+          id: 'redlining-layer',
+          type: 'fill',
+          source: 'redlining',
+          paint: {
           'fill-color': [
             'match', ['get', 'grade'],
             'A', '#4F7942',
             'B', '#FFEA00',
             'C', '#FFA500',
             'D', '#FF0000',
+            'E', '#ccc',
             '#ccc'
           ],
           'fill-opacity': 0.8
         }
+        });
+      });
+
+      map.on('click', 'flood-risk-layer', (e) => {
+        const fshri = e.features[0].properties.fshri;
+        new mapboxgl.Popup()
+          .setLngLat(e.lngLat)
+          .setHTML(`<strong>FSHRI Score:</strong> ${fshri}`)
+          .addTo(map);
       });
     });
 
-    map.addSource('flood_risk', { type: 'geojson', data: './data/flood_risk.geojson' });
-
-    map.addLayer({
-      id: 'flood-risk-layer',
-      type: 'fill',
-      source: 'flood_risk',
-      paint: {
-        'fill-color': [
-          'match', ['get', 'fshri'],
-          '1', '#deebf7',
-          '2', '#9ecae1',
-          '3', '#6baed6',
-          '4', '#3182bd',
-          '5', '#08519c',
-          '#ccc'
-        ],
-        'fill-opacity': 0.8
-      }
-    });
-
-    map.addLayer({
-      id: 'flood-outline',
-      type: 'line',
-      source: 'flood_risk',
-      paint: {
-        'line-color': '#000',
-        'line-width': 1,
-        'line-opacity': 0.4
-      }
-    });
-
-    map.on('click', 'flood-risk-layer', (e) => {
-      const fshri = e.features[0].properties.fshri;
-      new mapboxgl.Popup()
-        .setLngLat(e.lngLat)
-        .setHTML(`<strong>FSHRI Score:</strong> ${fshri}`)
-        .addTo(map);
-    });
-
-    map.addSource('community_eligible', {
-      type: 'geojson',
-      data: './data/community_eligible.geojson'
-    });
-
-    map.addLayer({
-      id: 'community-layer',
-      type: 'fill',
-      source: 'community_eligible',
-      paint: {
-        'fill-color': '#000000',
-        'fill-opacity': 0.9
-      },
-      filter: ['==', ['get', 'Eligibility'], 'CD Eligible']
-    });
-
-    // Toggle Buttons
     document.getElementById('toggle-cd').addEventListener('click', () => {
       cdVisible = !cdVisible;
       map.setLayoutProperty('community-layer', 'visibility', cdVisible ? 'visible' : 'none');
@@ -233,17 +311,23 @@
       redlineVisible = !redlineVisible;
       map.setLayoutProperty('redlining-layer', 'visibility', redlineVisible ? 'visible' : 'none');
     });
-  });
 
-  // Collapsible sidebar functionality
-  document.querySelectorAll('.collapsible').forEach(button => {
-    button.addEventListener('click', function () {
-      this.classList.toggle('active');
-      const content = this.nextElementSibling;
-      content.style.display = content.style.display === 'block' ? 'none' : 'block';
+    const geocoder = new MapboxGeocoder({
+      accessToken: mapboxgl.accessToken,
+      mapboxgl: mapboxgl,
+      placeholder: 'Search for an address...'
     });
-  });
-</script>
+    document.body.appendChild(geocoder.onAdd(map));
 
+    // Collapsible
+    const collapsibles = document.getElementsByClassName('collapsible');
+    for (let i = 0; i < collapsibles.length; i++) {
+      collapsibles[i].addEventListener('click', function () {
+        this.classList.toggle('active');
+        const content = this.nextElementSibling;
+        content.style.display = content.style.display === 'block' ? 'none' : 'block';
+      });
+    }
+  </script>
 </body>
 </html>
